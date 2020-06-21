@@ -2,20 +2,18 @@
   <div class="home">
     <!-- <img alt="Vue logo" src="../assets/logo.png">
     <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-    <CertUploader :dialog="true"/>
+    <CertList/>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-import CertUploader from '@/components/CertUploader.vue'
+import CertList from '@/components/CertList.vue'
 
 export default {
-  name: 'Home',
+  name: 'Certificate',
   components: {
-    HelloWorld,
-    CertUploader
+    CertList
   }
 }
 </script>
