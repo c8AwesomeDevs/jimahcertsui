@@ -6,7 +6,10 @@
       color="deep-purple darken-1"
     >
       <!-- <v-app-bar-nav-icon @click.stop="drawer = !drawer" /> -->
-      <v-toolbar-title style="color: white">{{APP_TITLE}}</v-toolbar-title>
+      <v-toolbar-title>
+        <!-- <router-link to="/certificates">{{APP_TITLE}}</router-link> -->
+        <v-btn to="/" color="white" text dark>{{APP_TITLE}}</v-btn>
+      </v-toolbar-title>
       <v-spacer/>
       <v-hover
         v-slot:default="{ hover }"

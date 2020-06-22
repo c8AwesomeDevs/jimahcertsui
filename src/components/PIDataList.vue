@@ -9,6 +9,20 @@
       dense
     >
       <template v-slot:top>
+        <v-alert
+          v-if="isAlerted"
+          dense
+          outlined
+          :type="responseStatus == 200 ? 'success' : 'error'"
+        >
+          <v-row>
+            {{responseMessage}}
+            <v-spacer/>
+            <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+        </v-row>
+        </v-alert>
         <v-toolbar flat color="white">
           <v-toolbar-title>PI Data</v-toolbar-title>
           <v-divider
@@ -18,34 +32,6 @@
           </v-divider>
           {{certName}}
           <v-spacer></v-spacer>
-          <!-- TODO
-          Create Component for Edit Dialog -->
-          <!-- <v-dialog v-model="editDialog" max-width="500px">
-            <v-card>
-              <v-card-title>
-                <span class="headline">{{ formTitle }}</span>
-              </v-card-title>
-              <v-divider/>
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="12" md="4">
-                      <v-text-field v-model="editedItem.name" label="Name"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="12" md="4">
-                      <v-text-field v-model="editedItem.cert_type" label="Certificate Type"></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-                <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog> -->
           <v-text-field
             v-model="search"
             append-icon="mdi-magnify"
@@ -54,43 +40,60 @@
             hide-details>
           </v-text-field>
         </v-toolbar>
+        <v-row>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" text @click="saveEditedData">Save</v-btn>
+          <v-btn color="green darken-1" text >Save and Upload</v-btn>
+        </v-row>
+        <v-divider></v-divider>
       </template>
-      <!-- <template v-slot:item.actions="{ item }">
-        <v-icon
-          small
-          class="mr-2"
-          @click="editItem(item)"
-        >
-          mdi-pencil
-        </v-icon>
-      </template> -->
+      <template v-slot:item.Value="{item}" @dblclick="">
+        <v-text-field v-model="item.Value" dense solo flat hide-details/>
+      </template>
       <template v-slot:item.Parameter="{item}" @dblclick="">
         <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/>
+      </template>
+      <template v-slot:item.Timestamp="{item}" @dblclick="">
+        <v-datetime-picker
+          v-model="item.Timestamp"
+          :text-field-props="textFieldProps"
+          :time-picker-props="timeProps"
+          time-format="HH:mm:ss">
+          <template slot="dateIcon">
+            <v-icon>mdi-calendar</v-icon>
+          </template>
+          <template slot="timeIcon">
+            <v-icon>mdi-clock</v-icon>
+          </template>
+          <template slot="actions" slot-scope="{ parent }">
+            <!-- <v-btn color="grey lighten-1" text @click.native="parent.clearHandler">Clear</v-btn> -->
+            <v-btn color="green darken-1" text @click="parent.okHandler">Ok</v-btn>
+            <v-btn color="blue darken-1" text @click="duplicateTimestamp(item.Timestamp)">Apply to all</v-btn>
+          </template>
+        </v-datetime-picker>
       </template>
       <template v-slot:item.Validated="{ item }">
         <v-simple-checkbox v-model="item.Validated"></v-simple-checkbox>
       </template>
-      <!-- <template v-slot:no-data>
-        <v-btn color="primary" @click="fetchPIData">Reset</v-btn>
-      </template> -->
     </v-data-table>
 </template>
 
 <script>
 import axios from 'axios'
-//import CertUploader from '@/components/CertUploader.vue'
 
 export default {
   name: 'PIDataList',  
 
-  // components: [CertUploader],
+  components: [],
 
   data: () => ({
+    id : null,
     certName: null,
     editDialog: false,
     search: '',
+    //Table
     headers: [
-      { text: 'Parameter', value: 'Parameter',filterable: true, groupable: true, width: "40%" },
+      { text: 'Parameter', value: 'Parameter',filterable: true, groupable: true, width: "30%" },
       { text: 'Description', value: 'Description', width: "25%"},
       { text: 'Timestamp', value: 'Timestamp'},
       { text: 'Value', value: 'Value'},
@@ -113,6 +116,22 @@ export default {
       Value : null,
       Validated: false,
     },
+    //calendard data
+    datetime: new Date(),
+    timeProps: {
+      useSeconds: true,
+      ampmInTitle: true
+    },
+    textFieldProps: {
+      dense: true,
+      solo: true, 
+      flat: true, 
+      hideDetails : true,
+    },
+    //Alerts
+    isAlerted : false,
+    responseStatus : null,
+    responseMessage : null,
   }),
 
   mounted() {
@@ -126,16 +145,11 @@ export default {
     },
   },
 
-  watch: {
-    dialog (val) {
-      val || this.close()
-    },
-  },
-
   created () {
     /*this.initialize()*/
     //id = this.$route.query._id
     let id = this.$route.query["_id"]
+    this.id = id
     this.fetchPIData(id)
   },
 
@@ -149,6 +163,9 @@ export default {
         .then(resp => { 
           console.log(resp)
           this.piData = resp.data.results
+          for(var item in this.piData){
+            this.piData[item]["Timestamp"] = new Date(this.piData[item]["Timestamp"])
+          }
           this.certName = resp.data.cert.name
           this.dataIsLoaded = true
           resolve(resp)
@@ -177,23 +194,43 @@ export default {
       confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
     },
 
-    close () {
-      this.editDialog = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+    closeAlert () {
+      this.isAlerted = false
+      this.responseStatus = resp.status
+      this.responseMessage = resp.data.message
     },
 
-    save () {
-      //TODO
-      /*if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
-      } else {
-        this.desserts.push(this.editedItem)
-      }*/
-      this.close()
+    saveEditedData () {
+      console.log("Saving Edited Data")
+     /* let formData = new FormData();
+      formData.append('data_to_save',this.piData)*/
+      return new Promise((resolve, reject) => {
+        axios({url: `http://10.10.8.116:81/api/v1/save_edited_data?_id=${this.id}`, 
+              method: 'POST',
+              data: this.piData
+            })
+        .then(resp => { 
+          console.log(resp)
+          this.isAlerted = true
+          this.responseStatus = resp.status
+          this.responseMessage = resp.data.message
+          resolve(resp)
+        })
+        .catch(err => {
+          console.log(err.response)
+          //TODO
+          //Error Message
+          reject(err)
+        })
+      })
     },
+    duplicateTimestamp(timestamp){
+      console.log("duplicating")
+      console.log(timestamp)
+      for(var item in this.piData){
+        this.piData[item]["Timestamp"] = timestamp
+      }
+    }
   },
 
 }
