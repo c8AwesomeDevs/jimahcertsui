@@ -3,12 +3,27 @@
     :headers="headers"
     :items="certificates"
     :search="search"
+    :loading ="!dataIsLoaded && !isAlerted"
     sort-by="id"
     class="elevation-1"
     dense
   >
     <template v-slot:top>
       <CertUploader :dialog="addItemDialog" @closed="closeCertUploader" @newCertUploaded="fetchCertificates"/>
+      <v-alert
+        v-if="isAlerted"
+        dense
+        outlined
+        :type="responseStatus == 200 ? 'success' : 'error'"
+      >
+        <v-row>
+          {{responseMessage}}
+          <v-spacer/>
+          <!-- <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
+            <v-icon>mdi-close</v-icon>
+          </v-btn> -->
+      </v-row>
+      </v-alert>
       <v-toolbar flat color="white">
         <v-toolbar-title>Certificates</v-toolbar-title>
         <v-divider
@@ -16,12 +31,13 @@
           inset
           vertical>
         </v-divider>
-        <v-btn
+        <!-- <v-btn
           color="primary"
           dark
           @click="addItem">
           New Item
-        </v-btn>
+        </v-btn> -->
+        <v-btn color="deep-purple darken-1" text @click="addItem">New Item</v-btn>
         <v-spacer></v-spacer>
         <!-- TODO
         Create Component for Edit Dialog -->
@@ -70,9 +86,12 @@
       </v-toolbar>
     </template>
     <template v-slot:item.extraction_status="{item}">
-
       <!-- <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/> -->
       <v-chip :color="extractionStatusColor[item.extraction_status]" dark>{{extractionStatus[item.extraction_status]}}</v-chip>
+    </template>
+    <template v-slot:item.cert_type="{item}">
+      <!-- <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/> -->
+      <v-chip :color="certTypeColor[item.cert_type]" dark>{{item.cert_type}}</v-chip>
     </template>
     <template v-slot:item.actions="{ item }">
       <v-icon
@@ -90,9 +109,9 @@
         mdi-export
       </v-icon>
     </template>
-    <template v-slot:no-data>
+    <!-- <template v-slot:no-data>
       <v-btn color="primary" @click="fetchCertificates">Reset</v-btn>
-    </template>
+    </template> -->
   </v-data-table>
 </template>
 
@@ -117,6 +136,7 @@ export default {
       { text: 'Actions', value: 'actions', sortable: false },
     ],
     certificates: [],
+    dataIsLoaded: false,
     editedItem: {
       id: null,
       name: '',
@@ -140,7 +160,15 @@ export default {
       "NE" : "orange darken-3",
       "Q" : "yellow darken-3",
       "E" : "light-green darken-3"
-    }    
+    }, 
+    certTypeColor: {
+      "COAL" : "blue-grey darken-3",
+      "DGA" : "blue-grey lighten-3",
+    }, 
+    //Alerts
+    isAlerted : false,
+    responseStatus : null,
+    responseMessage : null,
   }),
 
   mounted() {
@@ -166,22 +194,42 @@ export default {
 
   methods: {
     fetchCertificates () {
+      let token = this.$store.getters.token
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.116:81/api/v1/certificates/`, 
+        axios({url: `http://10.10.8.113:81/api/v1/certificates/`, 
               method: 'GET',
+              headers: {
+                  "Authorization": `Bearer ${token}`
+              },
             })
         .then(resp => { 
           console.log(resp)
           this.certificates = resp.data
+          this.dataIsLoaded = true
+
+          this.isAlerted = true
+          this.responseStatus = resp.status
+          this.responseMessage = "Certificates succesfully retrieved"
           resolve(resp)
         })
         .catch(err => {
           console.log(err.response)
-          //TODO
-          //Error Message
+          this.isAlerted = true
+          this.responseStatus = err.status
+          this.responseMessage = err.response.data.detail
+          if (err.response.status == 401){
+            this.$store.dispatch('logout')
+            this.$router.push('/login')
+          }
           reject(err)
         })
       })      
+    },
+
+    closeAlert () {
+      this.isAlerted = false
+      this.responseStatus = null
+      this.responseMessage = null
     },
 
     extractData (item) {

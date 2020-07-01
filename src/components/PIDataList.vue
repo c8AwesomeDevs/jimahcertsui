@@ -9,6 +9,7 @@
       dense
     >
       <template v-slot:top>
+        <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"></PIModal>
         <v-alert
           v-if="isAlerted"
           dense
@@ -18,7 +19,10 @@
           <v-row>
             {{responseMessage}}
             <v-spacer/>
-            <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
+            <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" v-if="responseStatus==401 || responseStatus==403" @click="logoutAndRedirect">
+              <v-icon small>mdi-login</v-icon>
+            </v-btn>   
+            <v-btn v-else icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
               <v-icon>mdi-close</v-icon>
             </v-btn>
         </v-row>
@@ -42,16 +46,16 @@
         </v-toolbar>
         <v-row>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="saveEditedData">Save</v-btn>
-          <v-btn color="green darken-1" text >Save and Upload</v-btn>
+          <v-btn color="deep-purple darken-1" text @click="saveEditedData">Save</v-btn>
+          <v-btn color="deep-purple darken-1" text @click="verifyBeforeUpload">Save and Upload</v-btn>
         </v-row>
         <v-divider></v-divider>
       </template>
-      <template v-slot:item.Value="{item}" @dblclick="">
-        <v-text-field v-model="item.Value" dense solo flat hide-details/>
+      <template v-slot:item.Value="{item}" >
+        <v-text-field v-model="item.Value" dense flat hide-details/>
       </template>
-      <template v-slot:item.Parameter="{item}" @dblclick="">
-        <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/>
+      <template v-slot:item.Parameter="{item}" >
+        <v-text-field v-model="item.Parameter" dense flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/>
       </template>
       <template v-slot:item.Timestamp="{item}" @dblclick="">
         <v-datetime-picker
@@ -75,29 +79,34 @@
       <template v-slot:item.Validated="{ item }">
         <v-simple-checkbox v-model="item.Validated"></v-simple-checkbox>
       </template>
+      <template v-slot:item.Uploaded="{ item }">
+        <v-simple-checkbox v-model="item.Uploaded" disabled></v-simple-checkbox>
+      </template>
     </v-data-table>
 </template>
 
 <script>
 import axios from 'axios'
+import PIModal from './PIModal'
 
 export default {
   name: 'PIDataList',  
 
-  components: [],
+  components: {PIModal},
 
   data: () => ({
     id : null,
     certName: null,
-    editDialog: false,
+    piDialog : false, 
     search: '',
     //Table
     headers: [
-      { text: 'Parameter', value: 'Parameter',filterable: true, groupable: true, width: "30%" },
-      { text: 'Description', value: 'Description', width: "25%"},
+      { text: 'Parameter', value: 'Parameter',filterable: true, groupable: true, width: "40%" },
+      { text: 'Description', value: 'Description', width: "20%"},
       { text: 'Timestamp', value: 'Timestamp'},
       { text: 'Value', value: 'Value'},
       { text: 'Validated', value: 'Validated'},
+      { text: 'Uploaded', value: 'Uploaded'},
     ],
     dataIsLoaded: false,
     piData: [],
@@ -115,6 +124,7 @@ export default {
       Timestamp: null,
       Value : null,
       Validated: false,
+      Uploaded: false,
     },
     //calendard data
     datetime: new Date(),
@@ -124,7 +134,6 @@ export default {
     },
     textFieldProps: {
       dense: true,
-      solo: true, 
       flat: true, 
       hideDetails : true,
     },
@@ -156,9 +165,14 @@ export default {
   methods: {
     fetchPIData (id) {
       console.log("Extracting Data")
+      let token = this.$store.getters.token
+      console.log(token)
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.116:81/api/v1/extract_data?_id=${id}`, 
+        axios({url: `http://10.10.8.113:81/api/v1/view_data?_id=${id}`, 
               method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${token}`                
+              }
             })
         .then(resp => { 
           console.log(resp)
@@ -168,20 +182,28 @@ export default {
           }
           this.certName = resp.data.cert.name
           this.dataIsLoaded = true
+          this.isAlerted = true
+          this.responseStatus = resp.status
+          this.responseMessage = "PI Data succesfully retrieved"
           resolve(resp)
         })
         .catch(err => {
           console.log(err.response)
-          //TODO
-          //Error Message
+          this.dataIsLoaded = true
+          this.isAlerted = true
+          this.responseStatus = err.response.status
+          this.responseMessage = err.response.data.detail
           reject(err)
         })
       }) 
     },
 
-    /*extractData (item) {
-      console.log(item.id)
-    },*/
+    logoutAndRedirect (item) {
+      if (this.responseStatus == 401 || this.responseStatus == 403){
+        this.$store.dispatch('logout')
+        this.$router.push('/login')
+      }
+    },
 
     editItem (item) {
       this.editedIndex = this.certificates.indexOf(item)
@@ -196,17 +218,18 @@ export default {
 
     closeAlert () {
       this.isAlerted = false
-      this.responseStatus = resp.status
-      this.responseMessage = resp.data.message
+      this.responseStatus = null
+      this.responseMessage = null
     },
-
     saveEditedData () {
       console.log("Saving Edited Data")
-     /* let formData = new FormData();
-      formData.append('data_to_save',this.piData)*/
+      let token = this.$store.getters.token
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.116:81/api/v1/save_edited_data?_id=${this.id}`, 
+        axios({url: `http://10.10.8.113:81/api/v1/save_edited_data?_id=${this.id}`, 
               method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${token}`                
+              },
               data: this.piData
             })
         .then(resp => { 
@@ -224,13 +247,52 @@ export default {
         })
       })
     },
+    verifyBeforeUpload () {
+      let token = this.$store.getters.token
+      this.piDialog = true
+    },
+    uploadEditedData (metadata) {
+      this.piDialog = false
+      let token = this.$store.getters.token
+      let data = {
+        metadata: metadata,
+        piData : this.piData
+      }
+      return new Promise((resolve, reject) => {
+        axios({url: `http://10.10.8.113:81/api/v1/upload_edited_data?_id=${this.id}`, 
+              method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${token}`
+              },
+              data: data
+            })
+        .then(resp => { 
+          console.log(resp)
+          this.isAlerted = true
+          this.responseStatus = resp.status
+          this.responseMessage = resp.data.message
+          //refresh list
+          this.fetchPIData(this.id)
+          resolve(resp)
+        })
+        .catch(err => {
+          console.log(err.response)
+          //TODO
+          //Error Message
+          reject(err)
+        })
+      })
+    },
     duplicateTimestamp(timestamp){
       console.log("duplicating")
       console.log(timestamp)
       for(var item in this.piData){
         this.piData[item]["Timestamp"] = timestamp
       }
-    }
+    },
+    closePIModal: function(value){
+      this.piDialog = false;
+    },
   },
 
 }

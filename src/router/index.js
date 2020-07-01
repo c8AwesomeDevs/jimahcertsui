@@ -4,6 +4,8 @@ import Home from '../views/Home.vue'
 
 import Certificates from '../views/Certificates.vue'
 import PIDataViewer from '../views/PIDataViewer.vue'
+import Login from '../views/Login.vue'
+import Page404 from '../views/Page404.vue'
 
 Vue.use(VueRouter)
 
@@ -12,17 +14,21 @@ Vue.use(VueRouter)
     path: '/',
     name: 'Certificates',
     component: Certificates,
-    meta: { breadCrumb: 'Home' },
   },
   {
     path: '/certificates',
     name: 'Certificates',
     component: Certificates,
-    meta: { breadCrumb: 'Certificates' },
   },
   { path: '/data', 
     component: PIDataViewer ,
-    meta: { breadCrumb: 'Data' },
+  },
+  { path: '/login', 
+    component: Login ,
+  },
+  { 
+    path: "*", 
+    component: Page404 
   }
 
 ]

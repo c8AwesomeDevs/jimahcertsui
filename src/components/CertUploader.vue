@@ -27,39 +27,12 @@
               <v-radio label="DGA Test Certificate" value="DGA"></v-radio>
               <v-radio label="Coal Test Certificate" value="COAL"></v-radio>
             </v-radio-group>
-            {{fileUpload}}
             <v-file-input 
               v-model="fileUpload"
               prepend-icon="mdi-file"
               accept="pdf"
             >
             </v-file-input>
-            <!-- <v-form
-              ref="form"
-              lazy-validation
-              v-else
-              >
-              TODO
-              <v-text-field
-                label=""
-                name="sqlDBUpload"
-                prepend-icon="mdi-database"
-                type="text"
-                required
-              />
-              <v-text-field
-                name="username"
-                prepend-icon="person"
-                type="text"
-                required
-              />
-              <v-text-field
-                prepend-icon="lock"
-                name="password"
-                type="password"
-                required
-              />
-            </v-form> -->
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -94,17 +67,18 @@ export default {
   methods : {
     uploadNewCert : function() {
       let formData = new FormData();
-      console.log(this.fileUpload.name)
       formData.append('cert_type',this.certType)
       formData.append('name',this.fileUpload.name)
       formData.append('upload',this.fileUpload)
+      let token = this.$store.getters.token
 
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.116:81/api/v1/certificates/`, 
+        axios({url: `http://10.10.8.113:81/api/v1/certificates/`, 
               method: 'POST',
               headers: {
                   /*"Authorization": `Bearer ${token}`,*/
-                  'Content-Type': 'multipart/form-data'
+                  'Content-Type': 'multipart/form-data',
+                  "Authorization": `Bearer ${token}`
               },
               data: formData
             })
@@ -112,8 +86,11 @@ export default {
           console.log(resp.data)
           let _id = resp.data.id
           return new Promise((resolve, reject) => {
-            axios({url: `http://10.10.8.116:81/api/v1/extract_data?_id=${_id}`, 
+            axios({url: `http://10.10.8.113:81/api/v1/extract_data?_id=${_id}`, 
                   method: 'POST',
+                  headers: {
+                      "Authorization": `Bearer ${token}`
+                  },
                 })
             .then(resp => { 
               console.log(resp)
@@ -128,8 +105,9 @@ export default {
             })
             .catch(err => {
               console.log(err.response)
-              //TODO
-              //Error Message
+              this.isAlerted = true
+              this.responseStatus = err.response.status
+              this.responseMessage = err.response.data.detail
               reject(err)
             })
           }) 
@@ -143,14 +121,19 @@ export default {
         })
         .catch(err => {
           console.log(err.response)
-          //TODO
-          //Error Message
+          console.log(err.response)
+          this.isAlerted = true
+          this.responseStatus = err.response.status
+          this.responseMessage = err.response.data.detail
           reject(err)
         })
       }) 
     },
     close: function(){
       console.log('clossing dialog')
+      this.isAlerted = false
+      this.responseStatus = null
+      this.responseMessage = null
       this.$emit('closed', null)
     },
     newCertUploaded: function(){
