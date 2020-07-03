@@ -31,29 +31,14 @@
           inset
           vertical>
         </v-divider>
-        <!-- <v-btn
-          color="primary"
-          dark
-          @click="addItem">
-          New Item
-        </v-btn> -->
-        <v-btn color="deep-purple darken-1" text @click="addItem">New Item</v-btn>
+        <v-btn color="deep-purple darken-1" text @click="openCertUploader">New Item</v-btn>
         <v-spacer></v-spacer>
         <!-- TODO
         Create Component for Edit Dialog -->
-        <v-dialog v-model="editItemDialogg" max-width="500px">
-          <!-- <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="primary"
-              dark
-              class="mb-2"
-              v-bind="attrs"
-              v-on="on"
-            >New Item</v-btn>
-          </template> -->
+        <v-dialog v-model="editItemDialog" max-width="500px">
           <v-card>
             <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
+              <span class="headline">New Item</span>
             </v-card-title>
             <v-divider/>
             <v-card-text>
@@ -69,11 +54,11 @@
               </v-container>
             </v-card-text>
 
-            <v-card-actions>
+            <!-- <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
               <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-            </v-card-actions>
+            </v-card-actions> -->
           </v-card>
         </v-dialog>
         <v-text-field
@@ -86,11 +71,9 @@
       </v-toolbar>
     </template>
     <template v-slot:item.extraction_status="{item}">
-      <!-- <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/> -->
       <v-chip :color="extractionStatusColor[item.extraction_status]" dark>{{extractionStatus[item.extraction_status]}}</v-chip>
     </template>
     <template v-slot:item.cert_type="{item}">
-      <!-- <v-text-field v-model="item.Parameter" dense solo flat hide-details :background-color="item.Validated ? 'light-green lighten-3' : 'yellow lighten-3'"/> -->
       <v-chip :color="certTypeColor[item.cert_type]" dark>{{item.cert_type}}</v-chip>
     </template>
     <template v-slot:item.actions="{ item }">
@@ -118,14 +101,18 @@
 <script>
 import axios from 'axios'
 import CertUploader from '@/components/CertUploader.vue'
+import ConfigMixin from '../mixins/config.js'
+import AlertMixin from '../mixins/views/AlertMixin.js'
 
 export default {
   name: 'CertList',  
 
   components: {CertUploader},
 
+  mixins: [ConfigMixin,AlertMixin],
+
   data: () => ({
-    editItemDialogg: false,
+    editItemDialog: false,
     addItemDialog: false,
     search: '',
     headers: [
@@ -165,26 +152,10 @@ export default {
       "COAL" : "blue-grey darken-3",
       "DGA" : "blue-grey lighten-3",
     }, 
-    //Alerts
-    isAlerted : false,
-    responseStatus : null,
-    responseMessage : null,
   }),
 
   mounted() {
     this.fetchCertificates()
-  },
-
-  computed: {
-    formTitle () {
-      return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
-    },
-  },
-
-  watch: {
-    dialog (val) {
-      val || this.close()
-    },
   },
 
   created () {
@@ -196,7 +167,7 @@ export default {
     fetchCertificates () {
       let token = this.$store.getters.token
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.113:81/api/v1/certificates/`, 
+        axios({url: `${this.BACKEND_REST_API}/certificates/`, 
               method: 'GET',
               headers: {
                   "Authorization": `Bearer ${token}`
@@ -225,13 +196,11 @@ export default {
         })
       })      
     },
-
     closeAlert () {
       this.isAlerted = false
       this.responseStatus = null
       this.responseMessage = null
     },
-
     extractData (item) {
       this.$router.push(`/data?_id=${item.id}`)
     },
@@ -240,28 +209,8 @@ export default {
       this.editedItem = Object.assign({}, item)
       this.editItemDialog = true
     },
-    addItem(){
+    openCertUploader(){
       this.addItemDialog = true
-    },
-    deleteItem (item) {
-      const index = this.desserts.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
-    },
-    close () {
-      this.editItemDialogg = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
-    },
-    save () {
-      //TODO
-      /*if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
-      } else {
-        this.desserts.push(this.editedItem)
-      }*/
-      this.close()
     },
     closeCertUploader: function(value){
       this.addItemDialog = false;

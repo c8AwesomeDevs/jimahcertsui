@@ -19,17 +19,17 @@
       </v-toolbar-title>
       <v-spacer/>
       <v-tooltip v-if="isLoggedIn" bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn icon v-bind="attrs" v-on="on">
+        <template v-if="isLoggedIn" v-slot:activator="{ on, attrs }">
+          <v-btn v-if="isLoggedIn" icon v-bind="attrs" v-on="on">
             <v-icon @click="openPIModal" small>mdi-pi</v-icon>
           </v-btn>
-        </template>
+        </template v-if="isLoggedIn">
         <span v-if="piTemp">Connected to  {{piTemp}}.</span>
         <span v-else="pi">No PI System connected.</span>
       </v-tooltip>
       <v-tooltip v-if="isLoggedIn" bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn icon v-bind="attrs" v-on="on">
+        <template v-if="isLoggedIn" v-slot:activator="{ on, attrs }">
+          <v-btn v-if="isLoggedIn" icon v-bind="attrs" v-on="on">
             <v-icon  @click="drawer = !drawer" small>mdi-account</v-icon>
           </v-btn>
         </template>
@@ -68,7 +68,7 @@
       </v-list-item>
 
       <v-divider></v-divider>
-
+      
       <v-list dense>
 
         <v-list-item
@@ -133,7 +133,10 @@ export default {
     },
     pi () {
       return this.$store.getters.pi
-    },    
+    }, 
+    hostname () {
+      return this.$store.getters.hostname
+    },
   },
 
   created() {

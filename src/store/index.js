@@ -15,6 +15,7 @@ export default new Vuex.Store({
     pi: localStorage.getItem('pi') || '',
     da: localStorage.getItem('da') || '',
     dataServers: JSON.parse(localStorage.getItem("names")) || [],
+    hostname: location.hostname
   },
   getters : {
     isLoggedIn: state => !!state.token,
@@ -24,6 +25,7 @@ export default new Vuex.Store({
     pi: state => state.pi,
     da: state => state.da, 
     dataServers: state => state.dataServers, 
+    hostname: state => state.hostname
   },
   mutations: {
     auth_request(state){

@@ -46,8 +46,8 @@
 
 <script>
 import axios from 'axios'
-//TODO
-//Create Mixin for this .js component
+import ConfigMixin from '../mixins/config.js'
+import AlertMixin from '../mixins/views/AlertMixin.js'
 
 export default {
   name: 'CertUploader',
@@ -56,12 +56,11 @@ export default {
     dialog : Boolean,
   },
 
+  mixins: [ConfigMixin,AlertMixin],
+
   data: ()=> ({
     fileUpload : null,
     certType : "COAL",
-    isAlerted : false,
-    responseStatus : null,
-    responseMessage : null,
   }),
 
   methods : {
@@ -73,7 +72,7 @@ export default {
       let token = this.$store.getters.token
 
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.113:81/api/v1/certificates/`, 
+        axios({url: `${this.BACKEND_REST_API}/certificates/`, 
               method: 'POST',
               headers: {
                   /*"Authorization": `Bearer ${token}`,*/
@@ -86,7 +85,7 @@ export default {
           console.log(resp.data)
           let _id = resp.data.id
           return new Promise((resolve, reject) => {
-            axios({url: `http://10.10.8.113:81/api/v1/extract_data?_id=${_id}`, 
+            axios({url: `${this.BACKEND_REST_API}/extract_data?_id=${_id}`, 
                   method: 'POST',
                   headers: {
                       "Authorization": `Bearer ${token}`

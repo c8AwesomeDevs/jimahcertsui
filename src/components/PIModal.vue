@@ -78,6 +78,8 @@
 
 <script>
 import axios from 'axios'
+import ConfigMixin from '../mixins/config.js'
+import AlertMixin from '../mixins/views/AlertMixin.js'
 
 export default {
   name: 'PIModal',
@@ -86,6 +88,8 @@ export default {
     dialog : Boolean,
     mode : String,
   },
+
+  mixins: [ConfigMixin,AlertMixin],
 
   data:() => ({
     username : "",
@@ -104,9 +108,6 @@ export default {
     valid: true,
     isPILoadSpin: false,
     dataServers : [],
-    isAlerted : false,
-    responseStatus : null,
-    responseMessage : null,
   }),
 
   created() {
@@ -137,7 +138,7 @@ export default {
       this.isPILoadSpin = true
       return new Promise((resolve, reject) => {
         let token = this.$store.getters.token        
-        axios({url: `http://10.10.8.113:81/api/v1/test_pi_connection`, 
+        axios({url: `${this.BACKEND_REST_API}/test_pi_connection`, 
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`

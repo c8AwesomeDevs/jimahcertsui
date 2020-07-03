@@ -25,12 +25,12 @@
             <v-spacer />
           </v-toolbar>
           <v-alert
-            v-if="isConnectionTested"
+            v-if="isAlerted"
             dense
             outlined
-            :type="testResponseStatus == 200 || testResponseStatus == 201 ? 'success' : 'error'"
+            :type="responseStatus == 200 || responseStatus == 201 ? 'success' : 'error'"
           >
-            {{testResponseMessage}}
+            {{responseMessage}}
           </v-alert>
           <v-card-text>
             <v-form
@@ -73,13 +73,13 @@
 </template>
 
 <script>
+import AlertMixin from '../mixins/views/AlertMixin.js'
+
 export default {
   name: 'Login',
+  mixins: [AlertMixin],
   data(){
     return {
-      testResponseMessage: "",
-      testResponseStatus: null,
-      isConnectionTested: false,
       valid: false, 
       username : "",
       usernameRules: [
@@ -112,14 +112,14 @@ export default {
        }
       )
       .catch(err => {
-        this.isConnectionTested = true;
+        this.isAlerted = true;
         try {
-          this.testResponseStatus = err.response.status
-          this.testResponseMessage = err.response.data.detail || err.response.statusText 
+          this.responseStatus = err.response.status
+          this.responseMessage = err.response.data.detail || err.response.statusText 
         }
         catch(err){
-          this.testResponseStatus = 500
-          this.testResponseMessage = "Unknown error"
+          this.responseStatus = 500
+          this.responseMessage = "Unknown error"
         }
 
       })

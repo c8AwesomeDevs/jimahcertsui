@@ -10,6 +10,7 @@
     >
       <template v-slot:top>
         <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"></PIModal>
+        <!-- {{piData}} -->
         <v-alert
           v-if="isAlerted"
           dense
@@ -88,11 +89,15 @@
 <script>
 import axios from 'axios'
 import PIModal from './PIModal'
+import ConfigMixin from '../mixins/config.js'
+import AlertMixin from '../mixins/views/AlertMixin.js'
 
 export default {
   name: 'PIDataList',  
 
   components: {PIModal},
+
+  mixins: [ConfigMixin,AlertMixin],
 
   data: () => ({
     id : null,
@@ -111,13 +116,6 @@ export default {
     dataIsLoaded: false,
     piData: [],
     selectedPIData: [],
-    editedItem: {
-      Parameter: null,
-      Description: '',
-      Timestamp: null,
-      Value : null,
-      Validated: false,
-    },
     defaultItem: {
       Parameter: null,
       Description: '',
@@ -148,12 +146,6 @@ export default {
     this.fetchPIData(id)*/
   },
 
-  computed: {
-    formTitle () {
-      return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
-    },
-  },
-
   created () {
     /*this.initialize()*/
     //id = this.$route.query._id
@@ -168,7 +160,7 @@ export default {
       let token = this.$store.getters.token
       console.log(token)
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.113:81/api/v1/view_data?_id=${id}`, 
+        axios({url: `${this.BACKEND_REST_API}/view_data?_id=${id}`, 
               method: 'POST',
               headers: {
                 "Authorization": `Bearer ${token}`                
@@ -205,17 +197,6 @@ export default {
       }
     },
 
-    editItem (item) {
-      this.editedIndex = this.certificates.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.editDialog = true
-    },
-
-    deleteItem (item) {
-      const index = this.desserts.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
-    },
-
     closeAlert () {
       this.isAlerted = false
       this.responseStatus = null
@@ -225,7 +206,7 @@ export default {
       console.log("Saving Edited Data")
       let token = this.$store.getters.token
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.113:81/api/v1/save_edited_data?_id=${this.id}`, 
+        axios({url: `${this.BACKEND_REST_API}/save_edited_data?_id=${this.id}`, 
               method: 'POST',
               headers: {
                 "Authorization": `Bearer ${token}`                
@@ -259,7 +240,7 @@ export default {
         piData : this.piData
       }
       return new Promise((resolve, reject) => {
-        axios({url: `http://10.10.8.113:81/api/v1/upload_edited_data?_id=${this.id}`, 
+        axios({url: `${this.BACKEND_REST_API}/upload_edited_data?_id=${this.id}`, 
               method: 'POST',
               headers: {
                 "Authorization": `Bearer ${token}`
