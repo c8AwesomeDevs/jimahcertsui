@@ -4,11 +4,17 @@
   TODO 
   Alertes 
 	-->
+  <v-progress-linear
+  	v-if="numPagesLoaded<numPages"
+    indeterminate
+    :value="numPagesLoaded/numPages"
+  />
 	<pdf 
 		v-for="i in numPages"
 		:key="i"
 		:src="pdfSource"
 		:page="i"
+		@loaded="numPagesLoaded=numPagesLoaded+1"
 	/>
   </div>
 </template>
@@ -28,6 +34,8 @@ export default {
     pdfSource: null,
     numPages: 1,
     loadingTask: null,
+    documentLoaded: false,
+    numPagesLoaded: 0,
   }),
   created () {
     /*this.initialize()*/
