@@ -18,7 +18,7 @@
           :type="responseStatus == 200 ? 'success' : 'error'"
         >
           <v-row>
-            {{responseMessage}}
+            <span @click="viewPdf">{{responseMessage}}</span>
             <v-spacer/>
             <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" v-if="responseStatus==401 || responseStatus==403" @click="logoutAndRedirect">
               <v-icon small>mdi-login</v-icon>
@@ -35,7 +35,12 @@
             inset
             vertical>
           </v-divider>
+          <router-link :to="{ path: '/certificates'}">
+          Certificates
+          </router-link>/
+          <router-link :to="{ path: '/pdf', query: { _id: id }}" target="_blank">
           {{certName}}
+          </router-link>
           <v-spacer></v-spacer>
           <v-text-field
             v-model="search"
@@ -124,6 +129,8 @@ export default {
       Validated: false,
       Uploaded: false,
     },
+    //pdf
+    pdfSource: null,
     //calendard data
     datetime: new Date(),
     timeProps: {
@@ -155,6 +162,10 @@ export default {
   },
 
   methods: {
+    viewPdf () {
+      console.log("Go to PDF Viewer")
+      this.$router.push(`/pdf?_id=${this.id}`)
+    },
     fetchPIData (id) {
       console.log("Extracting Data")
       let token = this.$store.getters.token
@@ -189,14 +200,12 @@ export default {
         })
       }) 
     },
-
     logoutAndRedirect (item) {
       if (this.responseStatus == 401 || this.responseStatus == 403){
         this.$store.dispatch('logout')
         this.$router.push('/login')
       }
     },
-
     closeAlert () {
       this.isAlerted = false
       this.responseStatus = null

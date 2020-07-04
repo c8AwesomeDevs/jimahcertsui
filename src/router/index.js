@@ -6,6 +6,7 @@ import Certificates from '../views/Certificates.vue'
 import PIDataViewer from '../views/PIDataViewer.vue'
 import Login from '../views/Login.vue'
 import Page404 from '../views/Page404.vue'
+import PDFViewer from '../views/PDFViewer.vue'
 
 Vue.use(VueRouter)
 
@@ -21,7 +22,13 @@ Vue.use(VueRouter)
     component: Certificates,
   },
   { path: '/data', 
+    name: 'PIDataViewer',  
     component: PIDataViewer ,
+  },
+  {
+    path: '/pdf',
+    name: 'PDFViewer',  
+    component: PDFViewer,
   },
   { path: '/login', 
     component: Login ,

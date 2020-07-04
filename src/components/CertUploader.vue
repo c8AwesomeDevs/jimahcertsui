@@ -1,17 +1,9 @@
 <template>
   <v-row justify="center">
     <v-dialog :value="dialog" persistent max-width="600px" @click:outside="close" @keydown.esc="close">
-    <!-- <v-dialog :value="dialog" persistent max-width="600px"> -->
       <v-card>
         <v-card-title>
           <span class="headline">Upload Certificate</span>
-          <!-- <v-spacer/>
-          <v-tooltip v-else top>
-            <template v-slot:activator="{ on }">
-              <v-icon v-on="on" @click="connectToDBDialog" >mdi-database-search</v-icon>
-            </template>
-            <span>{{VIEW_MODE_ICON_HINT}}</span>
-          </v-tooltip> -->
         </v-card-title>
         <v-divider/>
         <v-alert
@@ -30,13 +22,12 @@
             <v-file-input 
               v-model="fileUpload"
               prepend-icon="mdi-file"
-              accept="pdf"
+              accept=".pdf"
             >
             </v-file-input>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <!-- <v-btn color="red" text @click="close">{{CLOSE_DIALOG_BUTTON_LABEL}}</v-btn> -->
           <v-btn color="deep-purple lighten-2" :disabled="!fileUpload" text @click="uploadNewCert">Upload File</v-btn>
         </v-card-actions>
       </v-card>

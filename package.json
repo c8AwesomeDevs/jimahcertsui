@@ -9,6 +9,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "vue": "^2.6.11",
+    "vue-pdf": "^4.1.0",
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
     "vuetify-datetime-picker": "^2.1.1",
