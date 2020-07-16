@@ -1,7 +1,8 @@
 <template>
   <v-app>
     <v-img src="./assets/background-04.png" :aspect-ratio="16/5">
-    <PIModal v-if="isLoggedIn" :dialog="piDialog" mode="validate" @closed="closePIModal"></PIModal>
+    <PIModal v-if="isLoggedIn" :dialog="piDialog" mode="validate" @closed="closePIModal"/>
+    <ActivitiesModal ref="activitiesModal" v-if="isLoggedIn" :dialog="activitiesDialog" :activities="activities" @updateActivityLogs="updateActivityLogs" @closed="closeActivitiesModal"/>
     <v-app-bar
       app
       color="deep-purple darken-1"
@@ -36,7 +37,7 @@
         <span>Signed in as {{user.username}} </span>
       </v-tooltip>
     </v-app-bar>
-    <v-content>
+    <v-main>
       <v-row
         align="center"
         justify="center"
@@ -46,10 +47,10 @@
           sm="8"
           md="11"
         >
-          <router-view/>
+          <router-view @newActivityLog="refreshActivityLog"/>
         </v-col>
       </v-row>
-    </v-content>
+    </v-main>
     <v-navigation-drawer
       v-model="drawer"
       absolute
@@ -84,6 +85,15 @@
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-clipboard-list</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content @click="openActivitiesModal">
+            <v-list-item-title>Activity Logs</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-list>
       <div class="pa-2">
         <v-btn @click="logout" block>Logout</v-btn>
@@ -101,6 +111,7 @@
 <script>
 import axios from 'axios'
 import PIModal from './components/PIModal'
+import ActivitiesModal from './components/ActivitiesModal'
 //import App Mixins
 import AppMixin from './mixins/views/AppMixin.js'
 
@@ -108,13 +119,15 @@ export default {
   name: 'App',
 
   components: {
-    PIModal
+    PIModal,
+    ActivitiesModal
   },
 
   mixins: [AppMixin],
 
   data: () => ({
     piDialog : false, 
+    activitiesDialog : false,
     routes : [],
     drawer : null,
     items: [
@@ -122,6 +135,7 @@ export default {
       { title: 'Manual Logs', icon: 'mdi-clipboard-list', path:"/manuallogs" },
     ],
     piTemp : null,
+    activities : [],
   }),
 
   computed: {
@@ -150,6 +164,10 @@ export default {
   },
 
   methods: {
+    refreshActivityLog: function(){
+      console.log("New activity")
+      this.$refs.activitiesModal.fetchActivityLogs()
+    },
     logout: function () {
       console.log('logging out')
       this.$store.dispatch('logout')
@@ -160,14 +178,25 @@ export default {
     closePIModal: function(value){
       this.piDialog = false;
     },
+    closeActivitiesModal: function(value){
+      this.activitiesDialog = false;
+    },
     openPIModal: function(){
       console.log("Opening PI Modal")
       this.piDialog = true
     },
+    openActivitiesModal: function(){
+      console.log("Opening Activities Modal")
+      this.activitiesDialog = true
+    },
+    updateActivityLogs : function(value) {
+      console.log(this.activities)
+      this.activities = value
+    },
     goto : function(path){
       console.log("goto")
       this.$router.push(path)
-    }
+    },
   }
 };
 </script>

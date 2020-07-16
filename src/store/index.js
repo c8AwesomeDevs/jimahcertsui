@@ -12,16 +12,20 @@ export default new Vuex.Store({
     status: '',
     token: localStorage.getItem('token') || '',
     user: JSON.parse(localStorage.getItem('user')) || {},
+    userGroups: JSON.parse(localStorage.getItem("userGroups")) || [],
     pi: localStorage.getItem('pi') || '',
     da: localStorage.getItem('da') || '',
     dataServers: JSON.parse(localStorage.getItem("names")) || [],
-    hostname: location.hostname
+    hostname: location.hostname,
+    groups: ["public","certificate_uploader","data_validator"]
   },
   getters : {
     isLoggedIn: state => !!state.token,
+    isAuthenticated: state => !!state.token,
     authStatus: state => state.status,
     token: state => state.token,
     user: state => state.user,
+    userGroups: state => state.userGroups,
     pi: state => state.pi,
     da: state => state.da, 
     dataServers: state => state.dataServers, 
@@ -43,6 +47,23 @@ export default new Vuex.Store({
     logout(state){
       state.status = ''
       state.token = ''
+      state.userGroups = []
+    },
+    saveUserGroups(state,params){
+      localStorage.setItem("userGroups", JSON.stringify(params))
+      Vue.set(state, 'userGroups', params )
+    },
+    resetUserGroups(state){
+      localStorage.removeItem('userGroups')
+    },
+    savePI(state,params){
+      Vue.set(state, 'pi', params )
+    },
+    saveDA(state,params){
+      Vue.set(state, 'da', params )
+    },
+    saveDataServers(state,params){
+      Vue.set(state, 'dataServers', params )
     },
   },
   actions: {
@@ -64,6 +85,25 @@ export default new Vuex.Store({
           })
         })
     },
+    getUserGroups({commit}, token){
+        return new Promise((resolve, reject) => {
+          axios({url: `${backend_rest_api}/get_user_groups`, 
+              method: 'GET' ,
+              headers: {
+                "Authorization": `Bearer ${token}`                
+              }
+          })
+          .then(resp => {
+            const userGroups = resp.data
+            commit('saveUserGroups',userGroups)
+            resolve(resp)
+          })
+          .catch(err => {
+            commit('resetUserGroups')
+            reject(err)
+          })
+        })
+    },
     logout({commit}){
       return new Promise((resolve, reject) => {
         commit('logout')
@@ -74,12 +114,15 @@ export default new Vuex.Store({
     },
     choosePI({commit},pi){
       localStorage.setItem('pi', pi)
+      commit('savePI',pi)
     },
     chooseDA({commit},da){
       localStorage.setItem('da', da)
+      commit('saveDA',da)
     },
     getDataServers({commit},dataServers){
       localStorage.setItem("names", JSON.stringify(dataServers))
+      commit('saveDataServers',dataServers)      
     },
   },
 })

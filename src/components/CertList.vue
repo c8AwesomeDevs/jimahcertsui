@@ -5,11 +5,12 @@
     :search="search"
     :loading ="!dataIsLoaded && !isAlerted"
     sort-by="id"
+    :sort-desc="true"
     class="elevation-1"
     dense
   >
     <template v-slot:top>
-      <CertUploader :dialog="addItemDialog" @closed="closeCertUploader" @newCertUploaded="fetchCertificates"/>
+      <CertUploader :dialog="addItemDialog" @closed="closeCertUploader" @newCertUploaded="fetchCertificates" @newActivityLog="$emit('newActivityLog', null)"/>
       <v-alert
         v-if="isAlerted"
         dense
@@ -19,10 +20,7 @@
         <v-row>
           {{responseMessage}}
           <v-spacer/>
-          <!-- <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
-            <v-icon>mdi-close</v-icon>
-          </v-btn> -->
-      </v-row>
+        </v-row>
       </v-alert>
       <v-toolbar flat color="white">
         <v-toolbar-title>Certificates</v-toolbar-title>
@@ -53,12 +51,6 @@
                 </v-row>
               </v-container>
             </v-card-text>
-
-            <!-- <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-            </v-card-actions> -->
           </v-card>
         </v-dialog>
         <v-text-field
@@ -92,9 +84,6 @@
         mdi-export
       </v-icon>
     </template>
-    <!-- <template v-slot:no-data>
-      <v-btn color="primary" @click="fetchCertificates">Reset</v-btn>
-    </template> -->
   </v-data-table>
 </template>
 
@@ -174,7 +163,6 @@ export default {
               },
             })
         .then(resp => { 
-          console.log(resp)
           this.certificates = resp.data
           this.dataIsLoaded = true
 
@@ -184,7 +172,6 @@ export default {
           resolve(resp)
         })
         .catch(err => {
-          console.log(err.response)
           this.isAlerted = true
           this.responseStatus = err.status
           this.responseMessage = err.response.data.detail

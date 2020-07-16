@@ -74,10 +74,11 @@
 
 <script>
 import AlertMixin from '../mixins/views/AlertMixin.js'
+import ConfigMixin from '../mixins/config.js'
 
 export default {
   name: 'Login',
-  mixins: [AlertMixin],
+  mixins: [AlertMixin,ConfigMixin],
   data(){
     return {
       valid: false, 
@@ -92,14 +93,9 @@ export default {
     }
   },
   computed: {
-    isLoggedIn () {
-      return this.$store.getters.isLoggedIn
+    isAuthenticated () {
+      return this.$store.getters.isAuthenticated
     },
-  },
-  created() {
-    /*if(this.isLoggedIn){
-      this.$router.push('/')
-    }*/
   },
   methods: {
     login: function () {
@@ -108,7 +104,11 @@ export default {
       let password = this.password
       this.$store.dispatch('login', { username, password })
       .then(() => {
-        this.$router.push('/') 
+        let token = this.$store.getters.token
+        this.$store.dispatch('getUserGroups', token)
+        .then(()=>{
+          this.$router.push('/') 
+        })
        }
       )
       .catch(err => {
@@ -117,13 +117,13 @@ export default {
           this.responseStatus = err.response.status
           this.responseMessage = err.response.data.detail || err.response.statusText 
         }
-        catch(err){
+        catch(err2){
           this.responseStatus = 500
-          this.responseMessage = "Unknown error"
+          this.responseMessage = err
         }
 
       })
-    }
+    },
   }
 }
 

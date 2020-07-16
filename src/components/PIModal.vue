@@ -131,7 +131,6 @@ export default {
 
   methods: {
     close: function(){
-      console.log('clossing dialog')
       this.$emit('closed', null)
     },
     testConnection: function(){
@@ -172,7 +171,6 @@ export default {
       })
     },
     chooseDA: function(){
-      console.log("changing store")
       /*this.$store.dispatch('chooseDA', this.daTemp)*/
     },
     triggerUpload: function(){

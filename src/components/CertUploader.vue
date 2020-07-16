@@ -56,6 +56,7 @@ export default {
 
   methods : {
     uploadNewCert : function() {
+      this.$emit('newActivityLog', null)
       let formData = new FormData();
       formData.append('cert_type',this.certType)
       formData.append('name',this.fileUpload.name)
@@ -73,7 +74,6 @@ export default {
               data: formData
             })
         .then(resp => { 
-          console.log(resp.data)
           let _id = resp.data.id
           return new Promise((resolve, reject) => {
             axios({url: `${this.BACKEND_REST_API}/extract_data?_id=${_id}`, 
@@ -83,7 +83,6 @@ export default {
                   },
                 })
             .then(resp => { 
-              console.log(resp)
               this.isAlerted = true
               this.responseStatus = resp.status
               this.responseMessage = "Certificate Successfully Uploaded and Queued for Data Extraction.Queued Certificates for Data Extraction will take a few seconds to process. Please refresh page to see updated status."
@@ -94,7 +93,6 @@ export default {
               resolve(resp)
             })
             .catch(err => {
-              console.log(err.response)
               this.isAlerted = true
               this.responseStatus = err.response.status
               this.responseMessage = err.response.data.detail
@@ -110,8 +108,6 @@ export default {
           resolve(resp)
         })
         .catch(err => {
-          console.log(err.response)
-          console.log(err.response)
           this.isAlerted = true
           this.responseStatus = err.response.status
           this.responseMessage = err.response.data.detail
@@ -120,14 +116,12 @@ export default {
       }) 
     },
     close: function(){
-      console.log('clossing dialog')
       this.isAlerted = false
       this.responseStatus = null
       this.responseMessage = null
       this.$emit('closed', null)
     },
     newCertUploaded: function(){
-      console.log('new cert is added')
       this.$emit('newCertUploaded', null)
     }
   }
