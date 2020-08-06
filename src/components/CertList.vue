@@ -1,90 +1,134 @@
 <template>
-  <v-data-table
-    :headers="headers"
-    :items="certificates"
-    :search="search"
-    :loading ="!dataIsLoaded && !isAlerted"
-    sort-by="id"
-    :sort-desc="true"
-    class="elevation-1"
-    dense
-  >
-    <template v-slot:top>
-      <CertUploader :dialog="addItemDialog" @closed="closeCertUploader" @newCertUploaded="fetchCertificates" @newActivityLog="$emit('newActivityLog', null)"/>
-      <v-alert
-        v-if="isAlerted"
-        dense
-        outlined
-        :type="responseStatus == 200 ? 'success' : 'error'"
+  <!-- DOCUMENT SUMMARY -->
+  <div>
+    <!-- Certificate Uploader -->
+    <CertUploader 
+      :dialog="addItemDialog" 
+      @closed="closeCertUploader" 
+      @newCertUploaded="fetchCertificates" 
+      @newActivityLog="$emit('newActivityLog', null)"
+    />
+
+    <!-- Alerts -->
+    <v-alert
+      v-if="isAlerted"
+      dense
+      outlined
+      :type="responseStatus == 200 ? 'success' : 'error'"
+    >
+      <v-row>
+        {{responseMessage}}
+        <v-spacer/>
+      </v-row>
+    </v-alert>
+
+    <!-- Table -->
+    <v-data-table
+      :headers="headers"
+      :items="certificates"
+      :search="search"
+      :loading ="!dataIsLoaded && !isAlerted"
+      sort-by="id"
+      :sort-desc="true"
+      class="elevation-12"
+      dense
       >
-        <v-row>
-          {{responseMessage}}
-          <v-spacer/>
-        </v-row>
-      </v-alert>
-      <v-toolbar flat color="white">
-        <v-toolbar-title>Certificates</v-toolbar-title>
-        <v-divider
-          class="mx-4"
-          inset
-          vertical>
-        </v-divider>
-        <v-btn color="deep-purple darken-1" text @click="openCertUploader">New Item</v-btn>
-        <v-spacer></v-spacer>
-        <!-- TODO
-        Create Component for Edit Dialog -->
-        <v-dialog v-model="editItemDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">New Item</span>
-            </v-card-title>
-            <v-divider/>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col cols="12" sm="12" md="4">
-                    <v-text-field v-model="editedItem.name" label="Name"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="12" md="4">
-                    <v-text-field v-model="editedItem.cert_type" label="Certificate Type"></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search"
-          single-line
-          hide-details>
-        </v-text-field>
-      </v-toolbar>
-    </template>
-    <template v-slot:item.extraction_status="{item}">
-      <v-chip :color="extractionStatusColor[item.extraction_status]" dark>{{extractionStatus[item.extraction_status]}}</v-chip>
-    </template>
-    <template v-slot:item.cert_type="{item}">
-      <v-chip :color="certTypeColor[item.cert_type]" dark>{{item.cert_type}}</v-chip>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <v-icon
-        small
-        class="mr-2"
-        @click="editItem(item)"
-      >
-        mdi-pencil
-      </v-icon>
-      <v-icon
-        v-if="item.extraction_status=='E'"
-        small
-        @click="extractData(item)"
-      >
-        mdi-export
-      </v-icon>
-    </template>
-  </v-data-table>
+
+      <!-- Table Toolbar -->
+      <template v-slot:top>
+        <v-toolbar flat color="white">
+
+          <!-- Table Title -->
+          <v-toolbar-title>
+            Certificates
+          </v-toolbar-title>
+
+          <v-divider
+            class="mx-4"
+            inset
+            vertical>
+          </v-divider>
+
+          <!-- Cert Uploader Action Button -->
+          <v-btn 
+            color="cyan darken-4" 
+            text 
+            @click="openCertUploader"
+          >
+            New Item
+          </v-btn>
+
+          <v-spacer></v-spacer>
+
+          <!-- TODO
+          Create Component for Edit Dialog -->
+          <!-- <v-dialog v-model="editItemDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">New Item</span>
+              </v-card-title>
+              <v-divider/>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="12" md="4">
+                      <v-text-field v-model="editedItem.name" label="Name"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="4">
+                      <v-text-field v-model="editedItem.cert_type" label="Certificate Type"></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+            </v-card>
+          </v-dialog> -->
+
+          <!-- Search/Filter Action Field -->
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details>
+          </v-text-field>
+        </v-toolbar>
+      </template>
+
+      <!-- Table Slots -->
+      <template v-slot:item.extraction_status="{item}">
+        <v-chip 
+          :color="extractionStatusColor[item.extraction_status]" 
+          dark
+        >
+          {{extractionStatus[item.extraction_status]}}
+        </v-chip>
+      </template>
+      <template v-slot:item.cert_type="{item}">
+        <v-chip 
+          :color="certTypeColor[item.cert_type]" 
+          dark
+        >
+          {{item.cert_type}}
+        </v-chip>
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          class="mr-2"
+          @click="editItem(item)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          v-if="item.extraction_status=='E'"
+          small
+          @click="extractData(item)"
+        >
+          mdi-export
+        </v-icon>
+      </template>
+    </v-data-table>
+  </div>
 </template>
 
 <script>
@@ -173,8 +217,17 @@ export default {
         })
         .catch(err => {
           this.isAlerted = true
-          this.responseStatus = err.status
-          this.responseMessage = err.response.data.detail
+          try{
+            this.responseStatus = err.response.status
+            try {
+              this.responseMessage = err.response.data.detail
+            } catch(err){
+              this.responseMessage = "An Unknown error occured. Please Contact the Developer"
+            }
+          } catch(err){
+            this.responseStatus = 500
+            this.responseMessage = "An Unknown error occured. Please Contact the Developer"
+          }
           if (err.response.status == 401){
             this.$store.dispatch('logout')
             this.$router.push('/login')

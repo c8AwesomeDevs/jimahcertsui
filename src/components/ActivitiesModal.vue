@@ -1,12 +1,23 @@
 <template>
-  <v-row justify="center">
-    <v-dialog :value="dialog" persistent max-width="1000px" @click:outside="close" @keydown.esc="close">
+    <!-- USER ACTIVITY LOGS DIALOG -->
+    <v-dialog 
+      :value="dialog" 
+      persistent 
+      max-width="1000px" 
+      @click:outside="close" 
+      @keydown.esc="close"
+    >
       <v-card>
+
+        <!-- Dialog Title -->
         <v-card-title>
           <span>Activity Logs</span>
         </v-card-title>
+
         <v-divider/>
         <v-spacer/>
+
+        <!-- Dialog Content -- Table -->
         <v-card-text>
           <v-data-table
             :headers="headers"
@@ -26,20 +37,17 @@
                 :total-visible="totalVisible"
                 @next="fetchActivityLogs"
                 @previous="fetchActivityLogs"
-              >
-                
-              </v-pagination>
+              />
             </template>
             <template v-slot:item.status="{item}">
-              <v-chip :color="activityStatusColor[item.status]" dark>{{activityStatus[item.status]}}</v-chip>
+              <v-chip :color="activityStatusColor[item.status]" dark>
+                {{activityStatus[item.status]}}
+              </v-chip>
             </template>
           </v-data-table>
         </v-card-text>
-        <v-card-actions>
-        </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-row>
 </template>
 
 <script>
@@ -88,11 +96,9 @@ export default {
 
   methods: {
     close: function(){
-      console.log('clossing dialog')
       this.$emit('closed', null)
     },
     fetchActivityLogs: function(){
-      console.log("fetching Activity Logs")
       return new Promise((resolve, reject) => {
         let token = this.$store.getters.token        
         axios({url: `${this.BACKEND_REST_API}/activitylogs/?page=${this.page}&page_size=${this.itemsPerPage}`, 

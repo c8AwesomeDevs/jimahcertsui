@@ -15,7 +15,7 @@
       >
         <v-card class="elevation-12" @keyup.enter="login">
           <v-toolbar
-            color="deep-purple  darken-1 white--text"
+            color="cyan darken-4 white--text"
             flat
           >
             <v-spacer />
@@ -64,7 +64,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="deep-purple  darken-1 white--text" @click="login">Login</v-btn>
+            <v-btn color="cyan darken-4 white--text" @click="login">Login</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -75,10 +75,11 @@
 <script>
 import AlertMixin from '../mixins/views/AlertMixin.js'
 import ConfigMixin from '../mixins/config.js'
+import PingMixin from '../mixins/views/PingMixin.js'
 
 export default {
   name: 'Login',
-  mixins: [AlertMixin,ConfigMixin],
+  mixins: [AlertMixin,ConfigMixin,PingMixin],
   data(){
     return {
       valid: false, 

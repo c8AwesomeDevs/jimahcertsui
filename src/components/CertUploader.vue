@@ -28,7 +28,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="deep-purple lighten-2" :disabled="!fileUpload" text @click="uploadNewCert">Upload File</v-btn>
+          <v-btn color="cyan darken-4" :disabled="!fileUpload" text @click="uploadNewCert">Upload File</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -6,13 +6,13 @@
   >
     <v-row align="center">
       <v-col>
-        <h1 class="display-2 white--text">Whoops, 404</h1>
+        <h1 class="display-2 black--text">Whoops, 404</h1>
 
         <p>The page you were looking for does not exist</p>
 
         <v-btn
           :to="`/`"
-          color="deep-purple darken-1"
+          color="cyan darken-4"
           outlined
         >
           Get me out of here!
@@ -31,9 +31,6 @@ export default {
       type: String,
       default: 'en',
     },
-  },
-  created () {
-    this.$ssrContext && this.$ssrContext.res.status(404)
   },
 }
 </script>

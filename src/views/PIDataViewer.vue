@@ -9,9 +9,11 @@
 <script>
 // @ is an alias to /src
 import PIDataList from '@/components/PIDataList.vue'
+import PingMixin from '../mixins/views/PingMixin.js'
 
 export default {
   name: 'PIDataViewer',
+  mixins: [PingMixin],
   components: {
     PIDataList
   }

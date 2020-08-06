@@ -17,7 +17,8 @@ export default new Vuex.Store({
     da: localStorage.getItem('da') || '',
     dataServers: JSON.parse(localStorage.getItem("names")) || [],
     hostname: location.hostname,
-    groups: ["public","certificate_uploader","data_validator"]
+    groups: ["public","certificate_uploader","data_validator"],
+    pingStatus: localStorage.getItem('pingStatus') || 'offline',
   },
   getters : {
     isLoggedIn: state => !!state.token,
@@ -29,7 +30,8 @@ export default new Vuex.Store({
     pi: state => state.pi,
     da: state => state.da, 
     dataServers: state => state.dataServers, 
-    hostname: state => state.hostname
+    hostname: state => state.hostname,
+    isClientOnline: state => (state.pingStatus == 'online'),
   },
   mutations: {
     auth_request(state){
@@ -65,8 +67,29 @@ export default new Vuex.Store({
     saveDataServers(state,params){
       Vue.set(state, 'dataServers', params )
     },
+    savePingStatus(state,params){
+      Vue.set(state, 'pingStatus', params )
+      //localStorage.setItem("pingStatus", params)
+    },
   },
   actions: {
+    pingServer({commit}, token){
+        return new Promise((resolve, reject) => {
+          axios({url: `${backend_rest_api}/home`, 
+              method: 'GET' ,
+              headers: {
+                "Authorization": `Bearer ${token}`                
+              }
+          })
+          .then(resp => {
+            console.log("Pinged")
+            commit('savePingStatus','online')
+          })
+          .catch(err => {
+            commit('savePingStatus','offline')
+          })
+        })
+    },
     login({commit}, user){
         return new Promise((resolve, reject) => {
           commit('auth_request')

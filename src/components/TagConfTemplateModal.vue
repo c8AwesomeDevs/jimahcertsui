@@ -5,7 +5,6 @@
         <v-card-title>
           <span class="headline">Configure Tag Templates</span>
         </v-card-title>
-        {{tagConfiguration}}
         <v-divider/>
         <v-alert
           v-if="isAlerted"

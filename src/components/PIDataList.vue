@@ -34,6 +34,7 @@
       :loading ="!dataIsLoaded"
       loading-text="Extracting Data... Please wait"
       dense
+      class="elevation-12"
     >
       <template v-slot:top>
         <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"/>
@@ -63,9 +64,9 @@
         </v-toolbar>
         <v-row>
           <v-spacer></v-spacer>
-          <v-btn color="deep-purple darken-1" text @click="tagConfDialog=true">Configure Tag Template</v-btn>
-          <v-btn color="deep-purple darken-1" text @click="saveEditedData">Save</v-btn>
-          <v-btn color="deep-purple darken-1" text @click="verifyBeforeUpload">Save and Upload</v-btn>
+          <v-btn color="cyan darken-4" text @click="tagConfDialog=true">Configure Tag Template</v-btn>
+          <v-btn color="cyan darken-4" text @click="saveEditedData">Save</v-btn>
+          <v-btn color="cyan darken-4" text @click="verifyBeforeUpload">Save and Upload</v-btn>
         </v-row>
         <v-divider></v-divider>
       </template>
@@ -143,8 +144,8 @@ export default {
     //Table
     headers: [
       { text: 'Parameter', value: 'Parameter',filterable: true, groupable: true, width: "40%" },
-      { text: 'Description', value: 'Description', width: "20%"},
-      { text: 'Timestamp', value: 'Timestamp'},
+      /*{ text: 'Description', value: 'Description', width: "10%"},*/
+      { text: 'Timestamp', value: 'Timestamp',width: "18%"},
       { text: 'Value', value: 'Value'},
       { text: 'Validated', value: 'Validated'},
       { text: 'Uploaded', value: 'Uploaded'},
