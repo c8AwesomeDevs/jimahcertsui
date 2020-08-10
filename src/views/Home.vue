@@ -25,9 +25,11 @@
 </template>
 
 <script>
+import PingMixin from '../mixins/views/PingMixin.js'
 
 export default {
   name: 'Page404',
+  mixins : [PingMixin],
   props: {
     lang: {
       type: String,

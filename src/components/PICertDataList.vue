@@ -1,5 +1,7 @@
 <template>
   <div>
+    <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"/>
+    <TagConfTemplateModal :dialog="tagConfDialog" :id="Number(id)" :tagConfiguration="tagConfiguration" :tagConfigurations="tagConfigurations" :certTagConfigurationId="certTagConfigurationId" @closed="closeTagConfModal" @selectConfigurations="selectConfigurations" @resetConfiguration="resetConfiguration" @listConfigurations="listConfigurations"/>
     <v-alert
       v-if="isAlerted"
       dense
@@ -35,10 +37,8 @@
       loading-text="Extracting Data... Please wait"
       dense
       class="elevation-12"
-    >
+      >
       <template v-slot:top>
-        <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"/>
-        <TagConfTemplateModal :dialog="tagConfDialog" :id="Number(id)" :tagConfiguration="tagConfiguration" :tagConfigurations="tagConfigurations" :certTagConfigurationId="certTagConfigurationId" @closed="closeTagConfModal" @selectConfigurations="selectConfigurations" @resetConfiguration="resetConfiguration" @listConfigurations="listConfigurations"/>
         <!-- {{piData}} -->
         <v-toolbar flat color="white">
           <v-toolbar-title>PI Data</v-toolbar-title>
@@ -50,7 +50,7 @@
           <router-link :to="{ path: '/certificates'}">
           Certificates
           </router-link>/
-          <router-link :to="{ path: '/pdf', query: { _id: id }}" target="_blank">
+          <router-link :to="{ path: '/pdf', query: {_id: id }}" target="_blank">
           {{certName}}
           </router-link>
           <v-spacer></v-spacer>
@@ -111,13 +111,14 @@ import PIModal from './PIModal'
 import TagConfTemplateModal from './TagConfTemplateModal'
 import ConfigMixin from '../mixins/config.js'
 import AlertMixin from '../mixins/views/AlertMixin.js'
+import DataListMixin from '../mixins/views/DataListMixin.js'
 
 export default {
-  name: 'PIDataList',  
+  name: 'PICertDataList',  
 
   components: {PIModal,TagConfTemplateModal},
 
-  mixins: [ConfigMixin,AlertMixin],
+  mixins: [ConfigMixin,AlertMixin,DataListMixin],
 
   created () {
     /*this.initialize()*/
@@ -338,13 +339,6 @@ export default {
         })
       })
     },
-    duplicateTimestamp(timestamp){
-      //console.log("duplicating")
-      //console.log(timestamp)
-      for(var item in this.piData){
-        this.piData[item]["Timestamp"] = timestamp
-      }
-    },
     selectConfigurations: function(event){
       console.log(event)
       this.tagConfiguration = event
@@ -367,6 +361,13 @@ export default {
       console.log("closing dialog")
       this.tagConfDialog=false
       this.fetchPIData(this.id)
+    }
+  },
+
+  watch: {
+    $route (to, from){
+      this.emitRouteUpdate(to)
+      //this.show = false;
     }
   },
 

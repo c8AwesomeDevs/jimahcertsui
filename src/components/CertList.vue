@@ -92,6 +92,7 @@
             hide-details>
           </v-text-field>
         </v-toolbar>
+        <v-divider></v-divider>
       </template>
 
       <!-- Table Slots -->
@@ -242,7 +243,7 @@ export default {
       this.responseMessage = null
     },
     extractData (item) {
-      this.$router.push(`/data?_id=${item.id}`)
+      this.$router.push(`/data/certificate?_id=${item.id}`)
     },
     editItem (item) {
       this.editedIndex = this.certificates.indexOf(item)

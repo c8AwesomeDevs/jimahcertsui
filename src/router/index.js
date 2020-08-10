@@ -21,7 +21,7 @@ Vue.use(VueRouter)
     name: 'Certificates',
     component: Certificates,
   },
-  { path: '/data', 
+  { path: '/data/:source', 
     name: 'PIDataViewer',  
     component: PIDataViewer ,
   },

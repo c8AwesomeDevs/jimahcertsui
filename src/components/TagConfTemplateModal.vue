@@ -67,9 +67,9 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn v-if="selectOrCreate=='create'" color="deep-purple lighten-2" text @click="addConfiguration">Save Configuration</v-btn>
-          <v-btn v-if="selectOrCreate=='select'" color="deep-purple lighten-2" text @click="patchCertTagConfiguration">Save Configuration</v-btn>
-          <v-btn color="deep-purple lighten-2" text @click="previewConfiguration">Preview Configuration</v-btn>
+          <v-btn v-if="selectOrCreate=='create'" color="cyan darken-4" text @click="addConfiguration">Save Configuration</v-btn>
+          <v-btn v-if="selectOrCreate=='select'" color="cyan darken-4" text @click="patchCertTagConfiguration">Save Configuration</v-btn>
+          <v-btn color="cyan darken-4" text @click="previewConfiguration">Preview Configuration</v-btn>
         </v-card-actions>
       </v-card>
               {{responseMessage}}
@@ -97,7 +97,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="deep-purple lighten-2" text @click="mode = 'configure'">Edit Configuration</v-btn>
+          <v-btn color="cyan darken-4" text @click="mode = 'configure'">Edit Configuration</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

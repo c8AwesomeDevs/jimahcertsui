@@ -164,7 +164,7 @@ export default {
     drawer : null,
     items: [
       { title: 'Document Uploader', icon: 'mdi-file-upload' , path:"/certificates"},
-      { title: 'Manual Logger', icon: 'mdi-pencil', path:"/manuallogs" },
+      { title: 'Manual Logger', icon: 'mdi-pencil', path:"/data/manualLog" },
     ],
     piTemp : null,
     activities : [],

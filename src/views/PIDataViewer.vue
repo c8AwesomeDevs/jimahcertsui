@@ -1,21 +1,35 @@
 <template>
   <div class="home">
-    <!-- <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-    <PIDataList @newActivityLog="$emit('newActivityLog', null)"/>
+    <PICertDataList v-if="source=='certificate'" @updateRoute="updateRouteParams" @newActivityLog="$emit('newActivityLog', null)"/>
+    <PIManualDataList v-if="source=='manualLog'" @newActivityLog="$emit('newActivityLog', null)"/>
+
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import PIDataList from '@/components/PIDataList.vue'
+import PICertDataList from '@/components/PICertDataList.vue'
+import PIManualDataList from '@/components/PIManualDataList.vue'
 import PingMixin from '../mixins/views/PingMixin.js'
 
 export default {
   name: 'PIDataViewer',
   mixins: [PingMixin],
   components: {
-    PIDataList
+    PICertDataList,
+    PIManualDataList
+  },
+  created () {
+    let source = this.$route.params["source"]
+    this.source = source
+  },
+  data: () => ({
+    source : "manualLog"
+  }),
+  methods: {
+    updateRouteParams(route) {
+      this.source = route.params.source
+    }
   }
 }
 </script>
