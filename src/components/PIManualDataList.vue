@@ -1,8 +1,22 @@
 <template>
   <div>
-    <!-- <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"/> -->
+    <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadManualData"/>
     <ManualLogTemplateModal :dialog="manualLogDialog" @useTemplate="updatePIDataByTemplate" @closed="closeManualLogDialog"/>
-    <!-- {{piData}} -->
+    <v-alert
+      v-for="(alert,index) in alertsReversedSpliced"
+      dense
+      outlined
+      :type="alert.responseStatus == 200 ? 'success' : 'error'"
+      :key="index"
+    >
+      <v-row>
+        {{alert.responseMessage}}
+        <v-spacer/>
+        <v-btn v-if="alert.responseStatus==200" icon :color="alert.responseStatus == 200 ? 'success' : 'error'" @click="closeAlert(index)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+    </v-alert>
     <v-data-table
       v-if="isDataValidator"
       :headers="headers"
@@ -36,12 +50,11 @@
         <v-row>
           <v-spacer></v-spacer>
           <v-btn color="cyan darken-4" text @click="reset">Reset</v-btn>
-          <v-btn color="cyan darken-4" text>Upload CSV</v-btn>
+          <v-btn disabled color="cyan darken-4" text>Upload CSV</v-btn>
           <v-btn color="cyan darken-4" text @click="manualLogDialog=true">Templates</v-btn>
           <v-btn color="cyan darken-4" text @click="validateAll">Validate All</v-btn>
-          <v-btn color="cyan darken-4" text>Upload</v-btn>
-          <!-- <v-btn color="cyan darken-4" text @click="saveEditedData">Save</v-btn>
-          <v-btn color="cyan darken-4" text @click="verifyBeforeUpload">Upload</v-btn> -->
+          <!-- <v-btn color="cyan darken-4" text @click="saveEditedData">Save</v-btn> -->
+          <v-btn color="cyan darken-4" text @click="verifyBeforeUpload">Upload</v-btn>
         </v-row>
         <v-divider></v-divider>
       </template>
@@ -87,13 +100,14 @@ import ManualLogTemplateModal from './ManualLogTemplateModal'
 import ConfigMixin from '../mixins/config.js'
 import AlertMixin from '../mixins/views/AlertMixin.js'
 import DataListMixin from '../mixins/views/DataListMixin.js'
+import PIModalMixin from '../mixins/views/PIModalMixin.js'
 
 export default {
   name: 'PICertDataList',  
 
   components: {PIModal,ManualLogTemplateModal},
 
-  mixins: [ConfigMixin,AlertMixin,DataListMixin],
+  mixins: [ConfigMixin,AlertMixin,DataListMixin,PIModalMixin],
 
   created () {
     /*this.initialize()*/
@@ -146,21 +160,51 @@ export default {
   }),
 
   methods: {
+    uploadManualData (metadata) {
+      //console.log("Uploading edited Data")
+      this.$emit('newActivityLog', null)
+      this.piDialog = false
+      let token = this.$store.getters.token
+      let data = {
+        metadata: metadata,
+        piData : this.piData
+      }
+      return new Promise((resolve, reject) => {
+        axios({url: `${this.BACKEND_REST_API}/upload/manualogs`, 
+              method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${token}`
+              },
+              data: data
+            })
+        .then(resp => { 
+          //console.log(resp)
+          let alert = {
+            responseStatus : resp.status,
+            responseMessage : resp.data.message 
+          }
+          this.alerts.push(alert)
+          //refresh list
+          resolve(resp)
+        })
+        .catch(err => {
+          //console.log(err.response)
+          //TODO
+          //Error Message
+          reject(err)
+        })
+      })
+    },
     logoutAndRedirect (item) {
       if (this.responseStatus == 401 || this.responseStatus == 403){
         this.$store.dispatch('logout')
         this.$router.push('/login')
       }
     },
-    closeAlert () {
-      this.isAlerted = false
-      this.responseStatus = null
-      this.responseMessage = null
-    },
     updatePIDataByTemplate(template) {
       this.manualLogDialog = false
       template.forEach(function(element){
-        element.Timestamp = null
+        element.Timestamp = new Date()
         element.Value  = null
         element.Validated = false
         element.Uploaded = false

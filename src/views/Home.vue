@@ -17,7 +17,19 @@
           color="cyan darken-4"
           outlined
         >
-          Go to Certificates
+          Go to Documents
+        </v-btn>
+        <v-divider
+          class="mx-4"
+          inset
+          vertical>
+        </v-divider>
+        <v-btn
+          :to="`/data/manualLog`"
+          color="cyan darken-4"
+          outlined
+        >
+          Go to Manual Logs
         </v-btn>
       </v-col>
     </v-row>

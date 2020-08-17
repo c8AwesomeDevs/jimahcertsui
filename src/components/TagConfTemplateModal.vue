@@ -72,7 +72,6 @@
           <v-btn color="cyan darken-4" text @click="previewConfiguration">Preview Configuration</v-btn>
         </v-card-actions>
       </v-card>
-              {{responseMessage}}
       <v-card v-if="mode=='preview'">
         <v-card-title>
           <span class="headline">Preview Tags</span>

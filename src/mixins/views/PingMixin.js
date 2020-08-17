@@ -1,5 +1,5 @@
 export default {
-  created: function() {
+  /*created: function() {
     console.log("Started pinging")
     this.interval = setInterval(function(){
       let token = this.$store.getters.token
@@ -10,5 +10,5 @@ export default {
   beforeDestroy: function(){
     console.log("destroy")
     clearInterval(this.interval)
-  }
+  }*/
 }

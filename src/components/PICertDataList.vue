@@ -2,27 +2,29 @@
   <div>
     <PIModal :dialog="piDialog" mode="upload" @closed="closePIModal" @upload="uploadEditedData"/>
     <TagConfTemplateModal :dialog="tagConfDialog" :id="Number(id)" :tagConfiguration="tagConfiguration" :tagConfigurations="tagConfigurations" :certTagConfigurationId="certTagConfigurationId" @closed="closeTagConfModal" @selectConfigurations="selectConfigurations" @resetConfiguration="resetConfiguration" @listConfigurations="listConfigurations"/>
+
     <v-alert
-      v-if="isAlerted"
+      v-for="(alert, index) in alertsReversedSpliced"
       dense
       outlined
-      :type="responseStatus == 200 ? 'success' : 'error'"
+      :type="alert.responseStatus == 200 ? 'success' : 'error'"
+      :key="index"
     >
       <v-row>
-        <span @click="viewPdf">{{responseMessage}}</span>
+        <span @click="viewPdf">{{alert.responseMessage}}</span>
         <v-spacer/>
-        <v-btn v-if="responseStatus==200" icon :color="responseStatus == 200 ? 'success' : 'error'" @click="closeAlert">
+        <v-btn icon :color="alert.responseStatus == 200 ? 'success' : 'error'" @click="closeAlert(index)">
           <v-icon>mdi-close</v-icon>
-        </v-btn>        
+        </v-btn>
       </v-row>
       <v-row>
-        <router-link v-if="responseStatus==401 || responseStatus==403" :to="{ path: '/certificates'}">
+        <router-link v-if="alert.responseStatus==401 || alert.responseStatus==403" :to="{ path: '/certificates'}">
         Go Back to Certificates
         </router-link>
       </v-row>
-      <v-row v-if="responseStatus==401 || responseStatus==403">
+      <v-row v-if="alert.responseStatus==401 || alert.responseStatus==403">
         Log in as another user
-        <v-btn icon :color="responseStatus == 200 ? 'success' : 'error'" v-if="responseStatus==401 || responseStatus==403" @click="logoutAndRedirect">
+        <v-btn icon :color="alert.responseStatus == 200 ? 'success' : 'error'" v-if="alert.responseStatus==401 || alert.responseStatus==403" @click="logoutAndRedirect">
           <v-icon small>mdi-login</v-icon>
         </v-btn>
       </v-row>
@@ -112,13 +114,14 @@ import TagConfTemplateModal from './TagConfTemplateModal'
 import ConfigMixin from '../mixins/config.js'
 import AlertMixin from '../mixins/views/AlertMixin.js'
 import DataListMixin from '../mixins/views/DataListMixin.js'
+import PIModalMixin from '../mixins/views/PIModalMixin.js'
 
 export default {
   name: 'PICertDataList',  
 
   components: {PIModal,TagConfTemplateModal},
 
-  mixins: [ConfigMixin,AlertMixin,DataListMixin],
+  mixins: [ConfigMixin,AlertMixin,DataListMixin,PIModalMixin],
 
   created () {
     /*this.initialize()*/
@@ -185,7 +188,7 @@ export default {
 
   methods: {
     viewPdf () {
-      this.$router.push(`/pdf?_id=${this.id}`)
+      this.$router.push(`${this.BACKEND_REST_API}/pdf?_id=${this.id}`)
     },
     fetchPIData (id) {
       let token = this.$store.getters.token
@@ -205,16 +208,20 @@ export default {
           this.certTagConfigurationId = resp.data.cert.tag_configuration_id
           this.fetchTagConfiguration()
           this.dataIsLoaded = true
-          this.isAlerted = true
-          this.responseStatus = resp.status
-          this.responseMessage = "PI Data succesfully retrieved"
+          /*let alert = {
+            responseStatus : resp.status,
+            responseMessage : "Extracted Data from certificate succesfully retrieved"
+          }
+          this.alerts.push(alert)*/
           resolve(resp)
         })
         .catch(err => {
           this.dataIsLoaded = true
-          this.isAlerted = true
-          this.responseStatus = err.response.status
-          this.responseMessage = err.response.data.detail
+          let alert = {
+            responseStatus : err.response.status,
+            responseMessage : err.response.data.detail
+          }
+          this.alerts.push(alert)
           reject(err)
         })
       }) 
@@ -229,11 +236,24 @@ export default {
                 "Authorization": `Bearer ${token}`                
               }
             })
-        .then(resp => { 
+        .then(resp => {
+          /*if (this.tagConfiguration.id != resp.data.id){
+            let alert = {
+              responseStatus : resp.status,
+              responseMessage : "Tag Configuration for this certificate Successfully retrieved/updated"
+            }
+            this.alerts.push(alert)
+          }*/
           this.tagConfiguration = resp.data
           resolve(resp)
         })
         .catch(err => {
+          console.log(err.response)
+          let alert = {
+            responseStatus : 200,
+            responseMessage : `Tag Configuration for this certificate ${err.response.statusText}. Using default configuration` 
+          }
+          this.alerts.push(alert)
           reject(err)
         })
       }) 
@@ -250,15 +270,19 @@ export default {
             })
         .then(resp => { 
           this.tagConfigurations = resp.data
-          this.isAlerted = true
-          this.responseStatus = resp.status
-          this.responseMessage = "Tag Configuration Successfully Retrieved"
+          /*let alert = {
+            responseStatus : resp.status,
+            responseMessage : "Tag Configuration Templates Successfully retrieved/updated."
+          }
+          this.alerts.push(alert)*/
           resolve(resp)
         })
         .catch(err => {
-          this.isAlerted = true
-          this.responseStatus = err.response.status
-          this.responseMessage = err.response.data.detail
+          let alert = {
+            responseStatus :  err.response.status,
+            responseMessage : err.response.data.detail
+          }
+          this.alerts.push(alert)
           reject(err)
         })
       }) 
@@ -268,11 +292,6 @@ export default {
         this.$store.dispatch('logout')
         this.$router.push('/login')
       }
-    },
-    closeAlert () {
-      this.isAlerted = false
-      this.responseStatus = null
-      this.responseMessage = null
     },
     saveEditedData () {
       //console.log("Saving Edited Data")
@@ -287,10 +306,11 @@ export default {
               data: this.piData
             })
         .then(resp => { 
-          //console.log(resp)
-          this.isAlerted = true
-          this.responseStatus = resp.status
-          this.responseMessage = resp.data.message
+          let alert = {
+            responseStatus : resp.status,
+            responseMessage : resp.data.message 
+          }
+          this.alerts.push(alert)
           resolve(resp)
         })
         .catch(err => {
@@ -300,10 +320,6 @@ export default {
           reject(err)
         })
       })
-    },
-    verifyBeforeUpload () {
-      let token = this.$store.getters.token
-      this.piDialog = true
     },
     uploadEditedData (metadata) {
       //console.log("Uploading edited Data")
@@ -315,7 +331,7 @@ export default {
         piData : this.piData
       }
       return new Promise((resolve, reject) => {
-        axios({url: `${this.BACKEND_REST_API}/upload_edited_data?_id=${this.id}`, 
+        axios({url: `${this.BACKEND_REST_API}/upload/certificate?_id=${this.id}`, 
               method: 'POST',
               headers: {
                 "Authorization": `Bearer ${token}`
@@ -324,9 +340,11 @@ export default {
             })
         .then(resp => { 
           //console.log(resp)
-          this.isAlerted = true
-          this.responseStatus = resp.status
-          this.responseMessage = resp.data.message
+          let alert = {
+            responseStatus : resp.status,
+            responseMessage : resp.data.message 
+          }
+          this.alerts.push(alert)
           //refresh list
           this.fetchPIData(this.id)
           resolve(resp)
@@ -352,10 +370,6 @@ export default {
         transformation: "Select Parameter,Parameter as Tagname from pi_data",
         reference: ""      
       }
-    },
-    closePIModal: function(value){
-      this.piDialog = false;
-      //TODO Update Configuration on router using mutation
     },
     closeTagConfModal : function(){
       console.log("closing dialog")

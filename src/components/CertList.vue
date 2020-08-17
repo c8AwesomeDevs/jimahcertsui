@@ -10,15 +10,20 @@
     />
 
     <!-- Alerts -->
+    <!-- {{alertsReversedSpliced}} -->
     <v-alert
-      v-if="isAlerted"
+      v-for="(alert,index) in alertsReversedSpliced "
       dense
       outlined
-      :type="responseStatus == 200 ? 'success' : 'error'"
+      :type="alert.responseStatus == 200 ? 'success' : 'error'"
+      :key="index"
     >
       <v-row>
-        {{responseMessage}}
+        {{alert.responseMessage}}
         <v-spacer/>
+        <v-btn v-if="alert.responseStatus==200" icon :color="alert.responseStatus == 200 ? 'success' : 'error'" @click="closeAlert(index)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </v-row>
     </v-alert>
 
@@ -104,22 +109,22 @@
           {{extractionStatus[item.extraction_status]}}
         </v-chip>
       </template>
-      <template v-slot:item.cert_type="{item}">
+      <!-- <template v-slot:item.cert_type="{item}">
         <v-chip 
           :color="certTypeColor[item.cert_type]" 
           dark
         >
           {{item.cert_type}}
         </v-chip>
-      </template>
+      </template> -->
       <template v-slot:item.actions="{ item }">
-        <v-icon
+        <!-- <v-icon
           small
           class="mr-2"
           @click="editItem(item)"
         >
           mdi-pencil
-        </v-icon>
+        </v-icon> -->
         <v-icon
           v-if="item.extraction_status=='E'"
           small
@@ -189,7 +194,7 @@ export default {
   }),
 
   mounted() {
-    this.fetchCertificates()
+    /*this.fetchCertificates()*/
   },
 
   created () {
@@ -210,25 +215,30 @@ export default {
         .then(resp => { 
           this.certificates = resp.data
           this.dataIsLoaded = true
+          let alert = {
+            responseStatus : resp.status,
+            responseMessage : "Certificates succesfully retrieved",
+          }
 
-          this.isAlerted = true
-          this.responseStatus = resp.status
-          this.responseMessage = "Certificates succesfully retrieved"
+          this.alerts.push(alert)
+
           resolve(resp)
         })
         .catch(err => {
           this.isAlerted = true
+          let alert = {}
           try{
-            this.responseStatus = err.response.status
+            alert.responseStatus = err.response.status
             try {
-              this.responseMessage = err.response.data.detail
+              alert.responseMessage = err.response.data.detail
             } catch(err){
-              this.responseMessage = "An Unknown error occured. Please Contact the Developer"
+              alert.responseMessage = "An Unknown error occured. Please Contact the Developer"
             }
           } catch(err){
-            this.responseStatus = 500
-            this.responseMessage = "An Unknown error occured. Please Contact the Developer"
+            alert.responseStatus = 500
+            alert.responseMessage = "An Unknown error occured. Please Contact the Developer"
           }
+          this.alerts.push(alert)
           if (err.response.status == 401){
             this.$store.dispatch('logout')
             this.$router.push('/login')
@@ -236,11 +246,6 @@ export default {
           reject(err)
         })
       })      
-    },
-    closeAlert () {
-      this.isAlerted = false
-      this.responseStatus = null
-      this.responseMessage = null
     },
     extractData (item) {
       this.$router.push(`/data/certificate?_id=${item.id}`)

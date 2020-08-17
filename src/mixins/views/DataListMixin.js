@@ -24,7 +24,9 @@ export default {
     },
     validateAll(){
     	this.piData.forEach(function(item){
-    		item.Validated = true
+    		if(item.Parameter && item.Timestamp && item.Value){
+                item.Validated = true
+            }
     	})
     },
     duplicateTimestamp(timestamp){
