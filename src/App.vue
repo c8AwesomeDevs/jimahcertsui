@@ -146,7 +146,7 @@
       >
         <v-col
           cols="12"
-          sm="8"
+          sm="11"
           md="11"
         >
           <!-- APplication Content -->

@@ -253,7 +253,7 @@ export default {
             responseStatus : 200,
             responseMessage : `Tag Configuration for this certificate ${err.response.statusText}. Using default configuration` 
           }
-          this.alerts.push(alert)
+          //this.alerts.push(alert)
           reject(err)
         })
       }) 
